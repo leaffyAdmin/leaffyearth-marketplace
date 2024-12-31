@@ -1,18 +1,18 @@
 // styles/theme.ts
 import { createTheme } from '@mui/material/styles';
-import { lora, montserrat } from '@/styles/fonts';
+import { montserrat, belanosima } from '@/styles/fonts';
 
 const theme = createTheme({
     palette: {
         primary: {
-            main: '#1D3E37',
-        },
-        secondary: {
             main: '#397B57',
         },
+        secondary: {
+            main: '#1D3E37',
+        },
         background: {
-            default: '#EFF7EA',
-        }
+            default: '#F8FFF4',
+        },
     },
     breakpoints: {
         values: {
@@ -28,13 +28,22 @@ const theme = createTheme({
         fontFamily: montserrat.style.fontFamily,
 
         h1: {
-            fontFamily: lora.style.fontFamily,
+            fontFamily: belanosima.style.fontFamily,
         },
         h2: {
-            fontFamily: lora.style.fontFamily,
+            fontFamily: belanosima.style.fontFamily,
         },
         h3: {
-            fontFamily: lora.style.fontFamily,
+            fontFamily: belanosima.style.fontFamily,
+        },
+        h4: {
+            fontFamily: belanosima.style.fontFamily,
+        },
+        h5: {
+            fontFamily: belanosima.style.fontFamily,
+        },
+        h6: {
+            fontFamily: belanosima.style.fontFamily,
         },
     },
 });

@@ -17,7 +17,7 @@ export default function Header() {
                 aria-label='header-banner'
                 sx={{
                     width: '100%',
-                    backgroundColor: theme.palette.primary.main,
+                    backgroundColor: theme.palette.secondary.main,
                     py: '6px',
                     display: 'flex',
                     justifyContent: 'center'
@@ -33,8 +33,9 @@ export default function Header() {
                 direction='row'
                 sx={{
                     maxWidth: '1680px',
+                    px: 1,
                     margin: 'auto',
-                    p: 1,
+                    py: '18px',
                     justifyContent: 'space-between',
                     alignItems: 'center'
                 }}
@@ -52,11 +53,12 @@ export default function Header() {
                     <MenuDrawer />
 
                     <Image
+                        id='headerLogoImage'
                         src="https://leaffystorage.blob.core.windows.net/public/header-logo.png"
                         alt="Leaffy Storage Logo"
                         width={240}
                         height={50}
-                        priority
+                        // priority
                     />
 
                 </Stack>
@@ -64,7 +66,19 @@ export default function Header() {
 
                 <nav aria-label="main navigation">
 
-                    <List sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                    <List
+                        sx={{
+                            display: {
+                                xs: 'none',
+                                sm: 'none',
+                                md: 'flex',
+                                lg: 'flex',
+                            },
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: 4
+                        }}
+                    >
 
                         <ListItem disablePadding>
                             <ListItemText
