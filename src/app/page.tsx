@@ -1,5 +1,6 @@
 import CommunityFavorate from "@/components/layout/communityFavPlantsSection";
 import ExploreTheRage from "@/components/layout/exploreRangeSection";
+import Footer from "@/components/layout/footer";
 import Header from "@/components/layout/header/header";
 import HomeHeroSection from "@/components/layout/homeHeroSection";
 import IndoorPlantSection from "@/components/layout/indoorPlantsSection";
@@ -31,11 +32,14 @@ export default function Home() {
   return (
     <main>
       <Header />
+
       <HomeHeroSection />
       <ExploreTheRage />
       <LeaffyEarthValueSection />
       <IndoorPlantSection />
       <NewArrivalsSection />
+
+      <Footer />
     </main>
   );
 }
