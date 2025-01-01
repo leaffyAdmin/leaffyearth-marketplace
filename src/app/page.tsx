@@ -31,7 +31,6 @@ export default function Home() {
 
   return (
     <main>
-      <Header />
 
       <HomeHeroSection />
       <ExploreTheRage />
@@ -39,7 +38,6 @@ export default function Home() {
       <IndoorPlantSection />
       <NewArrivalsSection />
 
-      <Footer />
     </main>
   );
 }

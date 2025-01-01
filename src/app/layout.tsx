@@ -3,6 +3,8 @@ import "./globals.css";
 import ThemeRegistry from "@/styles/theme/ThemeRegistry";
 import ThemeProvider from "@/components/ThemeProvider";
 import { lora, montserrat, belanosima } from "@/styles/fonts";
+import Header from "@/components/layout/header/header";
+import Footer from "@/components/layout/footer";
 
 export const metadata: Metadata = {
   title: "LeaffyEarth Plant marketplace",
@@ -18,7 +20,11 @@ export default function RootLayout({
     <html lang="en" className={`${lora.variable} ${montserrat.variable} ${belanosima.variable}`}>
       <body>
         <ThemeRegistry>
-          <ThemeProvider>{children}</ThemeProvider>
+          <ThemeProvider>
+            <Header />
+            {children}
+            <Footer />
+          </ThemeProvider>
         </ThemeRegistry>
       </body>
     </html>

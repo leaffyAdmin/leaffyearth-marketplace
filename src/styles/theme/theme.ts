@@ -46,6 +46,35 @@ const theme = createTheme({
             fontFamily: belanosima.style.fontFamily,
         },
     },
+    
+
+    components: {
+        MuiListItemButton: {
+            styleOverrides: {
+                root: {
+                    position: 'relative',
+                    color: 'inherit',
+                    textDecoration: 'none',
+                    '&::after': {
+                        content: '""',
+                        position: 'absolute',
+                        left: 0,
+                        bottom: 8,
+                        height: '2px',
+                        width: 0,
+                        backgroundColor: 'currentColor',
+                        transition: 'width 0.3s ease',
+                    },
+                    '&:hover::after': {
+                        width: '100%',
+                    },
+                    '&:hover': {
+                        backgroundColor: '#F8FFF4',
+                    },
+                },
+            },
+        },
+    },
 });
 
 export default theme;
