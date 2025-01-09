@@ -18,6 +18,8 @@ export interface Plant {
 }
 
 
+
+
 export interface Dimension {
     length: number;
     width: number;
@@ -33,7 +35,34 @@ export interface PlantsReponse {
 }
 
 
+export interface catalogInPlant {
+    _id: string;
+    size: "small" | "medium" | "large" | "extra-large";
+    name: string;
+    description: string;
+    thumbnail: string;
+    images: string[],
+    price: number,
+    sku: string
+}
 
+export interface catalogPlantSeries {
+    _id: string;
+    plants: catalogInPlant[],
+    count: number
+}
+
+export interface PlantsCatalogReponse {
+    data: catalogPlantSeries[],
+    page: number;
+    limit: number;
+    total: number
+}
+
+
+export interface PlantVarient {
+    size: "small" | "medium" | "large" | "extra-large";
+}
 
 
 export enum PlantType {

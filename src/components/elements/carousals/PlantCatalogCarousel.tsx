@@ -26,6 +26,7 @@ export default function Carousel({ plants }: CarouselProps) {
     const isMd = useMediaQuery(theme.breakpoints.between('md', 'lg'));
     const isLg = useMediaQuery(theme.breakpoints.up('lg'));
 
+    
     let cardsToShow = 3;
     let cardWidth = 300;
 

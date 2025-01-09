@@ -2,39 +2,75 @@
 
 import { useState, useEffect, useRef } from 'react';
 import theme from '@/styles/theme/theme';
-import { Box, List, ListItem, ListItemButton, ListItemText, Stack, Typography } from '@mui/material';
+import { Box, List, ListItem, ListItemButton, ListItemText, Stack, Typography, useMediaQuery, useTheme } from '@mui/material';
 import Image from 'next/image';
 import MenuDrawer from './menuDrawer';
 import Link from 'next/link';
 import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined';
 import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
 
+
 export default function Header() {
+
+
+    const theme = useTheme();
+    const isSm = useMediaQuery(theme.breakpoints.between('xs', 'md'));
+
+
     const headerRef = useRef<HTMLDivElement>(null);
     const [isFixed, setIsFixed] = useState(false);
     const [leavesView, setLeavesView] = useState(false);
 
+    let lastScrollY = 0;
+
+    let scrollDirection: string = 'down'; // <'up' | 'down'>
+
     useEffect(() => {
         function handleScroll() {
+            const currentScrollY = window.scrollY;
+
             if (!headerRef.current) return;
             const headerBottom = headerRef.current.offsetTop + headerRef.current.offsetHeight;
 
-            if (window.scrollY >= headerBottom + 400) {
-                setIsFixed(true);
-            } else {
-                setIsFixed(false);
-            }
 
-            if (window.scrollY >= headerBottom) {
-                setLeavesView(true);
+            if (isSm) {
+                // Behavior for xs screens
+                if (currentScrollY > lastScrollY) {
+                    scrollDirection = 'down';
+                } else {
+                    scrollDirection = 'up';
+                }
+
+                if (currentScrollY >= headerBottom + 400 && scrollDirection === 'up') {
+                    setIsFixed(true);
+                    setLeavesView(true);
+                } else if (currentScrollY >= headerBottom + 400 && scrollDirection === 'down') {
+                    setIsFixed(false);
+                    setLeavesView(true);
+                } else {
+                    setIsFixed(false);
+                    setLeavesView(false);
+                }
+
+                lastScrollY = currentScrollY;
             } else {
-                setLeavesView(false);
+                if (currentScrollY >= headerBottom + 400) {
+                    setIsFixed(true);
+                } else {
+                    setIsFixed(false);
+                }
+
+                if (currentScrollY >= headerBottom) {
+                    setLeavesView(true);
+                } else {
+                    setLeavesView(false);
+                }
             }
         }
 
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
+    }, [isSm]);
 
     return (
         <>
@@ -90,14 +126,16 @@ export default function Header() {
                 >
                     <Stack direction="row" spacing={3} sx={{ alignItems: 'center' }}>
                         <MenuDrawer />
+                        <Link href="/" >
+                            <Image
+                                id="headerLogoImage"
+                                src="https://leaffystorage.blob.core.windows.net/public/header-logo.png"
+                                alt="Leaffy Storage Logo"
+                                width={240}
+                                height={50}
+                            />
+                        </Link>
 
-                        <Image
-                            id="headerLogoImage"
-                            src="https://leaffystorage.blob.core.windows.net/public/header-logo.png"
-                            alt="Leaffy Storage Logo"
-                            width={240}
-                            height={50}
-                        />
                     </Stack>
 
                     <nav aria-label="main navigation">
