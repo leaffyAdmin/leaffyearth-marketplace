@@ -1,31 +1,54 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { Box, Stack, Typography, Button, IconButton } from "@mui/material";
+import { useState, useMemo, useEffect } from "react";
+import { Box, Stack, Typography, Button, IconButton, Link } from "@mui/material";
 import Image from "next/image";
-
-import theme from "@/styles/theme/theme";
-import { catalogInPlant, catalogPlantSeries, PlantVarient } from "@/types/plants.types";
+import { catalogInPlant, catalogPlantSeries, GroupedPlanterSeries, GroupedPlanterSeries_planterName, GroupedPlanterSeries_variant, PlantPlanterVarients_colorType, PlantPlanterVarientsType, PlantVarient } from "@/types/plants.types";
 import { capitalizeWords } from "@/utils/wordFormatting";
 import ProductImageCarousel from "@/components/elements/productImageCarousal";
+import { groupPlanterVariants } from "./functions/GroupedSeriesPlanters";
+import theme from "@/styles/theme/theme";
+import { decryptVariant, encryptVariant } from "@/functions/encryptVariant";
+import { useRouter, useSearchParams } from 'next/navigation';
+
 
 interface PlantDetailsProps {
     plantSeries: catalogPlantSeries;
     variant: PlantVarient;
+    plantPlanterVarients: PlantPlanterVarientsType[]
 }
 
-export default function PlantDetailsSection({ plantSeries, variant }: PlantDetailsProps) {
+
+
+export default function PlantDetailsSection({ plantSeries, variant, plantPlanterVarients }: PlantDetailsProps) {
+    const router = useRouter();
+    const searchParams = useSearchParams();
     const validSizes = ["small", "medium", "large", "extra-large"] as const;
 
-    // Track the currently selected size
+    // main
+    // const [plantVariant, setPlantVariant] = useState<catalogInPlant>()
+    const [selectedPlanter, setSelectedPlanter] = useState<GroupedPlanterSeries_variant>()
     const [selectedSize, setSelectedSize] = useState(
         variant.size || plantSeries.plants[0]?.size
     );
-
-    // Track quantity for the "Add to Cart"
     const [quantity, setQuantity] = useState(1);
 
-    // If no valid size is found
+    const [selectedPlanterSku, setSelectedPlanterSku] = useState<string | null>(
+        variant.planterSku || null
+    );
+
+    const [selectedPlanterSeries, setSelectedPlanterSeries] = useState<GroupedPlanterSeries | null>(null)
+    const [selectedPlanterName, setSelectedPlanterName] = useState<GroupedPlanterSeries_planterName>()
+    const [selectedPlanterColor, setSelectedPlanterColor] = useState<GroupedPlanterSeries_variant>()
+
+
+
+    const encString = encryptVariant('small', 'random')
+
+    decryptVariant(encString)
+    let groupedPlantSeries: GroupedPlanterSeries[] = []
+
+    // validation size
     if (!selectedSize) {
         return (
             <Box
@@ -41,7 +64,7 @@ export default function PlantDetailsSection({ plantSeries, variant }: PlantDetai
         );
     }
 
-    // If the selected size is invalid, show a 404-like message
+    // validation size
     if (!validSizes.includes(selectedSize)) {
         return (
             <Box
@@ -57,12 +80,19 @@ export default function PlantDetailsSection({ plantSeries, variant }: PlantDetai
         );
     }
 
-    // Get the currently selected plant variant
-    const plantVariant = useMemo(() => {
-        return plantSeries.plants.find((plant) => plant.size === selectedSize);
-    }, [plantSeries.plants, selectedSize]);
 
-    // If no matching variant is found
+    const plantVariant = useMemo(() => {
+        const plant__v = plantSeries.plants.find((plant) => plant.size === selectedSize);
+        if (plant__v && selectedPlanter) {
+            plant__v.images = [...selectedPlanter.images, ...plant__v.images]
+            plant__v.images = [...new Set(plant__v.images)];
+        }
+        return plant__v
+    }, [plantSeries.plants, selectedSize, selectedPlanter]);
+
+
+
+    // validation varient
     if (!plantVariant) {
         return (
             <Box
@@ -78,15 +108,49 @@ export default function PlantDetailsSection({ plantSeries, variant }: PlantDetai
         );
     }
 
-    // Handlers
-    const handleAddToCart = () => {
-        // Example logic
-        console.log(`Add ${quantity} item(s) of size ${selectedSize} to cart!`);
-    };
+    if (plantVariant?.planterVariants) {
+        groupedPlantSeries = groupPlanterVariants(plantVariant?.planterVariants, plantPlanterVarients)
+    }
 
-    const handleBuyNow = () => {
-        // Example logic
-        console.log(`Buy now clicked for size ${selectedSize}!`);
+
+
+
+    useEffect(() => {
+        if (selectedPlanterSku) {
+
+            if (plantVariant.planterVariants.map((variant) => variant.planterSku).includes(selectedPlanterSku)) {
+
+                let DefaultPanterVarient = plantPlanterVarients.find((planter) => planter.planterSku === selectedPlanterSku)
+                if (DefaultPanterVarient) {
+                    const plantGroupedSeries = groupedPlantSeries?.find((planterSeries) => planterSeries.planterSeries === DefaultPanterVarient.planterSeries)
+                    if (plantGroupedSeries) {
+                        setSelectedPlanterSeries(plantGroupedSeries)
+                        const planterName = plantGroupedSeries.planters?.find((planter) => planter.planterName === DefaultPanterVarient.planterName)
+                        if (planterName) {
+                            setSelectedPlanterName(planterName)
+                            const planterColor = planterName.variant?.find((planter) => planter.color === DefaultPanterVarient.color)
+                            if (planterColor) {
+                                setSelectedPlanterColor(planterColor);
+                                setSelectedPlanter(planterColor)
+                            }
+
+                        }
+                    }
+                }
+
+            } else {
+                setSelectedPlanterSku(null)
+            }
+        }
+    }, [])
+
+
+
+
+    // functions 
+
+    const handleAddToCart = () => {
+        console.log(`Add ${quantity} item(s) of size ${selectedSize} to cart!`);
     };
 
     return (
@@ -113,33 +177,164 @@ export default function PlantDetailsSection({ plantSeries, variant }: PlantDetai
 
                     <Typography>{plantVariant.description}</Typography>
 
-                    <Typography variant="h4" color="green" sx={{ py: 2 }}>
-                        price: ${plantVariant.price}
-                    </Typography>
+                    {selectedPlanter ?
+                        <Typography variant="h4" color="green" sx={{ py: 2 }}>
+                            price: ${plantVariant.price + selectedPlanter?.price}
+                        </Typography>
+                        :
+                        <Typography variant="h4" color="green" sx={{ py: 2 }}>
+                            price: ${plantVariant.price}
+                        </Typography>
+                    }
 
                     {/* Size selection buttons */}
-                    <Stack direction="row" spacing={1}>
-                        {validSizes.map((size) => {
-                            const isAvailable = plantSeries.plants.some((p) => p.size === size);
-                            if (!isAvailable) return null;
+                    <Stack spacing={1}>
+                        <Typography> Sizes </Typography>
+                        <Stack direction="row" spacing={1}>
 
-                            return (
-                                <Button
-                                    key={size}
-                                    variant={selectedSize === size ? "contained" : "outlined"}
-                                    onClick={() => {
-                                        setSelectedSize(size);
-                                        setQuantity(1); // Optional: reset quantity on size change
-                                    }}
-                                >
-                                    {capitalizeWords(size)}
-                                </Button>
-                            );
-                        })}
+                            {validSizes.map((size) => {
+                                const isAvailable = plantSeries.plants.some((p) => p.size === size);
+                                if (!isAvailable) return null;
+
+                                return (
+                                    <Button
+                                        key={size}
+                                        variant={selectedSize === size ? "contained" : "outlined"}
+                                        onClick={() => {
+                                            setSelectedSize(size);
+                                            setSelectedPlanterSeries(null)
+                                            setSelectedPlanterName(undefined)
+                                            setSelectedPlanterColor(undefined)
+                                            setQuantity(1); // Optional: reset quantity on size change
+
+                                            const currentPath = window.location.pathname;
+                                            console.log("current params", searchParams.toString())
+                                            const currentParams = new URLSearchParams(searchParams.toString());
+                                            currentParams.set('size', size);
+                                            router.push(`${currentPath}?${currentParams.toString()}`);
+                                        }}
+                                    >
+                                        {capitalizeWords(size)}
+                                    </Button>
+                                );
+                            })}
+                        </Stack>
+
                     </Stack>
 
+                    <Stack spacing={1}>
+                        <Typography sx={{ py: '10px' }}> Planter Variants </Typography>
+                        <Stack direction="row" spacing={1}>
+                            {groupedPlantSeries?.map((PlantSeries) => {
 
-                    <Stack direction="column" spacing={2} width="100%" sx={{py:3}}>
+                                return (
+                                    <Button
+                                        key={PlantSeries.planterSeries}
+                                        variant={selectedPlanterSeries?.planterSeries === PlantSeries.planterSeries ? "contained" : "outlined"}
+                                        onClick={() => {
+                                            setSelectedPlanterSeries(PlantSeries);
+                                            setSelectedPlanterName(undefined)
+                                            setSelectedPlanterColor(undefined)
+                                            setSelectedPlanter(undefined)
+                                            setQuantity(1); // Optional: reset quantity on size change
+                                        }}
+                                    >
+                                        {capitalizeWords(PlantSeries.planterSeries)}
+                                    </Button>
+                                );
+                            })}
+                        </Stack>
+
+                        <Stack direction="row" spacing={1}>
+                            {selectedPlanterSeries?.planters?.map((planters) => {
+
+                                let planterThumbnail = 'https://leaffystorage.blob.core.windows.net/public/placeholder-planter-thumbnail.png'
+                                if (planters?.variant[0]?.thumbnail && planters?.variant[0]?.thumbnail != 'picture') {
+                                    planterThumbnail = planters?.variant[0]?.thumbnail
+                                }
+
+                                return (
+                                    <Stack
+                                        key={planters.planterName}
+                                        // variant={selectedPlanterName?.planterName === planters.planterName ? "contained" : "outlined"}
+                                        onClick={() => {
+                                            setSelectedPlanterName(planters)
+                                            setSelectedPlanterColor(planters?.variant[0])
+                                            setSelectedPlanter(planters?.variant[0])
+                                            setQuantity(1);
+
+                                            const currentPath = window.location.pathname;
+                                            console.log("current params", searchParams.toString())
+                                            const currentParams = new URLSearchParams(searchParams.toString());
+                                            currentParams.set('planterSku', planters?.variant[0].planterSku);
+                                            router.push(`${currentPath}?${currentParams.toString()}`);
+                                        }}
+                                        sx={{
+                                            border: selectedPlanterName?.planterName === planters.planterName ? '1px solid' : 'none',
+                                            borderBottom: '1px solid',
+                                            borderTop: '1px solid',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            width: '155px',
+                                            p: '5px',
+                                            borderColor: theme.palette.primary.light,
+                                            borderRadius: '5px'
+                                        }}
+                                    >
+                                        <Image
+                                            alt='planter thumbnail'
+                                            src={planterThumbnail}
+                                            width={85}
+                                            height={100}
+                                        />
+
+                                        {capitalizeWords(planters.planterName)}
+                                    </Stack>
+                                );
+                            })}
+                        </Stack>
+
+
+
+                    </Stack>
+                    <Box>
+
+                        {selectedPlanterName && <Typography sx={{ py: '10px' }}> Planter Color - {selectedPlanter?.color.name} </Typography>}
+                        <Stack direction="row" spacing={1}>
+                            {selectedPlanterName?.variant?.map((variant) => {
+
+                                return (
+                                    <Button
+                                        key={variant.planterSku}
+                                        variant={selectedPlanterColor?.color?.name === variant.color.name ? "contained" : "outlined"}
+                                        onClick={() => {
+                                            setSelectedPlanterColor(variant)
+                                            setSelectedPlanter(variant)
+                                            setQuantity(1);
+
+                                            const currentPath = window.location.pathname;
+                                            console.log("current params", searchParams.toString())
+                                            const currentParams = new URLSearchParams(searchParams.toString());
+                                            currentParams.set('planterSku', variant.planterSku);
+                                            router.push(`${currentPath}?${currentParams.toString()}`);
+                                        }}
+                                        sx={{
+                                            backgroundColor: variant.color.hex,
+                                            minWidth: '35px',
+                                            Width: '35px',
+                                            minHeight: '35px',
+                                            height: '35px',
+                                            borderRadius: '50%'
+                                        }}
+                                    >
+                                    </Button>
+
+                                );
+                            })}
+                        </Stack>
+                    </Box>
+
+                    <Stack direction="column" spacing={2} width="100%" sx={{ py: 3 }}>
                         <Stack direction="row" alignItems="center" spacing={2}>
                             <Button
                                 variant="outlined"
@@ -147,7 +342,7 @@ export default function PlantDetailsSection({ plantSeries, variant }: PlantDetai
                             >
                                 -
                             </Button>
-                            <Typography sx={{minWidth: '15px'}} textAlign='center' >{quantity}</Typography>
+                            <Typography sx={{ minWidth: '15px' }} textAlign='center' >{quantity}</Typography>
                             <Button variant="outlined" onClick={() => setQuantity((q) => q + 1)}>
                                 +
                             </Button>
@@ -155,9 +350,11 @@ export default function PlantDetailsSection({ plantSeries, variant }: PlantDetai
                                 Add to Cart
                             </Button>
                         </Stack>
-                        <Button variant="contained" color="secondary" onClick={handleBuyNow} sx={{ height: '50px' }}>
-                            Buy Now
-                        </Button>
+                        <Link href={'/checkouts'}>
+                            <Button variant="contained" color="secondary" sx={{ height: '50px', width: "100%" }}>
+                                Buy Now
+                            </Button>
+                        </Link>
                     </Stack>
                 </Stack>
             </Stack>

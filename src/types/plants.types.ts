@@ -41,10 +41,49 @@ export interface catalogInPlant {
     name: string;
     description: string;
     thumbnail: string;
-    images: string[],
-    price: number,
-    sku: string
+    images: string[];
+    price: number;
+    sku: string;
+    planterVariants: PlanterVariantType[];
 }
+
+
+export interface PlantPlanterVarients_colorType {
+    hex: string,
+    name: string
+}
+export interface PlantPlanterVarientsType {
+    planterSku: string;
+    planterName: string;
+    planterSeries: string;
+    thumbnail: string;
+    price: number;
+    color: PlantPlanterVarients_colorType;
+}
+
+export interface GroupedPlanterSeries_variant {
+    planterSku: string;
+    color: PlantPlanterVarients_colorType;
+    price: number;
+    thumbnail: string;
+    images: string[]; // Unique to this color/price combo
+}
+
+export interface GroupedPlanterSeries_planterName {
+    planterName: string;
+    variant: GroupedPlanterSeries_variant[];
+}
+
+export interface GroupedPlanterSeries {
+    planterSeries: string;
+    planters: GroupedPlanterSeries_planterName[];
+}
+
+export interface PlanterVariantType {
+    planterSku: string;
+    images: string[];
+}
+
 
 export interface catalogPlantSeries {
     _id: string;
@@ -62,6 +101,7 @@ export interface PlantsCatalogReponse {
 
 export interface PlantVarient {
     size: "small" | "medium" | "large" | "extra-large";
+    planterSku: string | null
 }
 
 

@@ -1,5 +1,5 @@
 import PlantDetailsSection from "@/components/layout/plantDetailsSection";
-import { catalogPlantSeries, PlantVarient } from "@/types/plants.types";
+import { catalogPlantSeries, PlantPlanterVarientsType, PlantVarient } from "@/types/plants.types";
 import { api } from "@/utils/api";
 import { Box, Typography } from "@mui/material";
 
@@ -20,8 +20,6 @@ export default async function PlantProductPage({ params, searchParams }: PagePro
     const { slug } = await params;
     let variant: PlantVarient = await searchParams;
 
-    console.log("plant Varient", variant)
-
 
     const getPlantDetails = async () => {
         try {
@@ -32,8 +30,20 @@ export default async function PlantProductPage({ params, searchParams }: PagePro
         }
     }
 
+    const getAllPlanterVariants = async () => {
+        try {
+            const { data }: { data: PlantPlanterVarientsType[] } = await api.get(`/plants/planter-variants`);
+            return data
+        } catch (err) {
+            console.error("failed fetching product details", err)
+            return []
+        }
+    }
+
 
     const plantDetails: catalogPlantSeries | undefined = await getPlantDetails()
+    
+    const plantPlanterVarients: PlantPlanterVarientsType[] = await getAllPlanterVariants()
 
     if (!plantDetails) {
         return (
@@ -70,8 +80,7 @@ export default async function PlantProductPage({ params, searchParams }: PagePro
 
     return (
         <>
-            <PlantDetailsSection plantSeries={plantDetails} variant={variant} />
+            <PlantDetailsSection plantSeries={plantDetails} variant={variant} plantPlanterVarients ={plantPlanterVarients} />
         </>
     )
-
 }
